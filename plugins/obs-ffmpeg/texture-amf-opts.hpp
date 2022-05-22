@@ -36,6 +36,8 @@ static void amf_apply_opt(amf_data *enc, obs_option *opt)
 			set_enum_opt(USAGE, LOW_LATENCY);
 		} else if (strcmp(opt->value, "webcam") == 0) {
 			set_enum_opt(USAGE, WEBCAM);
+		} else {
+			warn("Invalid value for %s: %s", opt->name, opt->value);
 		}
 
 	} else if (strcmp(opt->name, "profile") == 0) {
@@ -43,6 +45,7 @@ static void amf_apply_opt(amf_data *enc, obs_option *opt)
 		if (strcmp(opt->value, "main") == 0) {
 			set_enum_opt(PROFILE, MAIN);
 		} else if (enc->codec != amf_codec_type::AVC) {
+			warn("Invalid value for %s: %s", opt->name, opt->value);
 			return;
 		}
 
@@ -54,6 +57,8 @@ static void amf_apply_opt(amf_data *enc, obs_option *opt)
 		} else if (strcmp(opt->value, "constrained_high") == 0) {
 			set_opt(PROFILE,
 				AMF_VIDEO_ENCODER_PROFILE_CONSTRAINED_HIGH);
+		} else {
+			warn("Invalid value for %s: %s", opt->name, opt->value);
 		}
 
 	} else if (strcmp(opt->name, "level") == 0) {
@@ -74,6 +79,8 @@ static void amf_apply_opt(amf_data *enc, obs_option *opt)
 			set_enum_opt(QUALITY_PRESET, BALANCED);
 		} else if (strcmp(opt->value, "quality") == 0) {
 			set_enum_opt(QUALITY_PRESET, QUALITY);
+		} else {
+			warn("Invalid value for %s: %s", opt->name, opt->value);
 		}
 
 	} else if (strcmp(opt->name, "rc") == 0) {
@@ -87,6 +94,8 @@ static void amf_apply_opt(amf_data *enc, obs_option *opt)
 		} else if (strcmp(opt->value, "vbr_latency") == 0) {
 			set_enum_opt(RATE_CONTROL_METHOD,
 				     LATENCY_CONSTRAINED_VBR);
+		} else {
+			warn("Invalid value for %s: %s", opt->name, opt->value);
 		}
 
 	} else if (strcmp(opt->name, "enforce_hrd") == 0) {
@@ -177,6 +186,8 @@ static void amf_apply_opt(amf_data *enc, obs_option *opt)
 			set_avc_opt(CABAC_ENABLE, AMF_VIDEO_ENCODER_CALV);
 		} else if (strcmp(opt->value, "cabac") == 0) {
 			set_avc_opt(CABAC_ENABLE, AMF_VIDEO_ENCODER_CABAC);
+		} else {
+			warn("Invalid value for %s: %s", opt->name, opt->value);
 		}
 
 	} else if (hevc && strcmp(opt->name, "profile_tier") == 0) {
@@ -185,6 +196,8 @@ static void amf_apply_opt(amf_data *enc, obs_option *opt)
 			set_hevc_enum(TIER, MAIN);
 		} else if (strcmp(opt->value, "high") == 0) {
 			set_hevc_enum(TIER, HIGH);
+		} else {
+			warn("Invalid value for %s: %s", opt->name, opt->value);
 		}
 
 	} else if (hevc && strcmp(opt->name, "header_insertion_mode") == 0) {
@@ -195,6 +208,8 @@ static void amf_apply_opt(amf_data *enc, obs_option *opt)
 			set_hevc_enum(HEADER_INSERTION_MODE, GOP_ALIGNED);
 		} else if (strcmp(opt->value, "idr") == 0) {
 			set_hevc_enum(HEADER_INSERTION_MODE, IDR_ALIGNED);
+		} else {
+			warn("Invalid value for %s: %s", opt->name, opt->value);
 		}
 
 	} else if (hevc && strcmp(opt->name, "skip_frame") == 0) {
@@ -226,5 +241,7 @@ static void amf_apply_opt(amf_data *enc, obs_option *opt)
 
 		int val = atoi(opt->value);
 		set_hevc_property(enc, MAX_QP_P, val);
+	} else {
+		warn("Invalid option: %s", opt->name);
 	}
 }

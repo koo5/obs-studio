@@ -629,18 +629,22 @@ static bool amf_avc_update(void *data, obs_data_t *settings)
 {
 	amf_data *enc = (amf_data *)data;
 
+	int64_t bitrate = obs_data_get_int(settings, "bitrate") * 1000;
+	int64_t qp = obs_data_get_int(settings, "cqp");
+	const char *preset = obs_data_get_string(settings, "preset");
+	const char *profile = obs_data_get_string(settings, "profile");
+	const char *rc_str = obs_data_get_string(settings, "rate_control");
+
 	int rc = get_avc_rate_control(settings);
 
 	set_avc_property(enc, RATE_CONTROL_METHOD, rc);
 	set_avc_property(enc, ENABLE_VBAQ, true);
 
 	if (rc != AMF_VIDEO_ENCODER_RATE_CONTROL_METHOD_CONSTANT_QP) {
-		int64_t bitrate = obs_data_get_int(settings, "bitrate") * 1000;
 		set_avc_property(enc, TARGET_BITRATE, bitrate);
 		set_avc_property(enc, PEAK_BITRATE, bitrate * 15 / 10);
 		set_avc_property(enc, VBV_BUFFER_SIZE, bitrate);
 	} else {
-		int64_t qp = obs_data_get_int(settings, "cqp");
 		set_avc_property(enc, QP_I, qp);
 		set_avc_property(enc, QP_P, qp);
 		set_avc_property(enc, QP_B, qp);
@@ -664,6 +668,23 @@ static bool amf_avc_update(void *data, obs_data_t *settings)
 		}
 		obs_free_options(opts);
 	}
+
+	if (!ffmpeg_opts || !*ffmpeg_opts)
+		ffmpeg_opts = "(none)";
+
+	info("settings:\n"
+	     "\trate_control: %s\n"
+	     "\tbitrate:      %d\n"
+	     "\tcqp:          %d\n"
+	     "\tkeyint:       %d\n"
+	     "\tpreset:       %s\n"
+	     "\tprofile:      %s\n"
+	     "\twidth:        %d\n"
+	     "\theight:       %d\n"
+	     "\tparams:       %s",
+	     rc_str, bitrate, qp, gop_size, preset, profile, enc->cx, enc->cy,
+	     ffmpeg_opts);
+
 	return true;
 }
 
@@ -697,6 +718,8 @@ try {
 	set_avc_property(enc, OUTPUT_COLOR_PRIMARIES, enc->amf_primaries);
 	set_avc_property(enc, FULL_RANGE_COLOR, enc->full_range);
 
+	amf_avc_update(enc, settings);
+
 	res = enc->amf_encoder->Init(enc->amf_format, enc->cx, enc->cy);
 	if (res != AMF_OK)
 		throw amf_error("AMFComponent::Init failed", res);
@@ -707,11 +730,6 @@ try {
 	if (res == AMF_OK && p.type == AMF_VARIANT_INTERFACE)
 		enc->header = AMFBufferPtr(p.pInterface);
 
-	amf_avc_update(enc, settings);
-
-	/* reduce polling latency (not sure why, what, or where it's polling
-	 * but whatever. why, what, where.. whatever. that's my motto) */
-	set_amf_property(enc, L"TIMEOUT", 50);
 	return enc;
 
 } catch (const amf_error &err) {
@@ -782,6 +800,12 @@ static bool amf_hevc_update(void *data, obs_data_t *settings)
 {
 	amf_data *enc = (amf_data *)data;
 
+	int64_t bitrate = obs_data_get_int(settings, "bitrate") * 1000;
+	int64_t qp = obs_data_get_int(settings, "cqp");
+	const char *preset = obs_data_get_string(settings, "preset");
+	const char *profile = obs_data_get_string(settings, "profile");
+	const char *rc_str = obs_data_get_string(settings, "rate_control");
+
 	int rc = get_hevc_rate_control(settings);
 
 	set_hevc_property(enc, RATE_CONTROL_METHOD, rc);
@@ -815,6 +839,23 @@ static bool amf_hevc_update(void *data, obs_data_t *settings)
 		}
 		obs_free_options(opts);
 	}
+
+	if (!ffmpeg_opts || !*ffmpeg_opts)
+		ffmpeg_opts = "(none)";
+
+	info("settings:\n"
+	     "\trate_control: %s\n"
+	     "\tbitrate:      %d\n"
+	     "\tcqp:          %d\n"
+	     "\tkeyint:       %d\n"
+	     "\tpreset:       %s\n"
+	     "\tprofile:      %s\n"
+	     "\twidth:        %d\n"
+	     "\theight:       %d\n"
+	     "\tparams:       %s",
+	     rc_str, bitrate, qp, gop_size, preset, profile, enc->cx, enc->cy,
+	     ffmpeg_opts);
+
 	return true;
 }
 
@@ -906,6 +947,8 @@ try {
 		set_hevc_property(enc, INPUT_HDR_METADATA, buf);
 	}
 
+	amf_hevc_update(enc, settings);
+
 	res = enc->amf_encoder->Init(enc->amf_format, enc->cx, enc->cy);
 	if (res != AMF_OK)
 		throw amf_error("AMFComponent::Init failed", res);
@@ -917,11 +960,6 @@ try {
 	if (res == AMF_OK && p.type == AMF_VARIANT_INTERFACE)
 		enc->header = AMFBufferPtr(p.pInterface);
 
-	amf_hevc_update(enc, settings);
-
-	/* reduce polling latency (not sure why, what, or where it's polling
-	 * but whatever. why, what, where.. whatever. that's my motto) */
-	set_amf_property(enc, L"TIMEOUT", 50);
 	return enc;
 
 } catch (const amf_error &err) {

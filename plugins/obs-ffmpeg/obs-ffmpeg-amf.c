@@ -114,6 +114,9 @@ static bool ffmpeg_amf_update(struct ffmpeg_amf_encoder *enc,
 	ffmpeg_video_encoder_update(&enc->ffve, bitrate, keyint_sec, voi, &info,
 				    ffmpeg_opts);
 
+	if (!ffmpeg_opts || !*ffmpeg_opts)
+		ffmpeg_opts = "(none)";
+
 	info("settings:\n"
 	     "\trate_control: %s\n"
 	     "\tbitrate:      %d\n"
@@ -122,9 +125,10 @@ static bool ffmpeg_amf_update(struct ffmpeg_amf_encoder *enc,
 	     "\tpreset:       %s\n"
 	     "\tprofile:      %s\n"
 	     "\twidth:        %d\n"
-	     "\theight:       %d\n",
+	     "\theight:       %d\n"
+	     "\tparams:       %s",
 	     rc, bitrate, cqp, enc->ffve.context->gop_size, preset, profile,
-	     enc->ffve.context->width, enc->ffve.context->height);
+	     enc->ffve.context->width, enc->ffve.context->height, ffmpeg_opts);
 
 	return ffmpeg_video_encoder_init_codec(&enc->ffve);
 }
