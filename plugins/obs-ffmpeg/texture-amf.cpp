@@ -4,6 +4,7 @@
 
 #include "obs-ffmpeg-config.h"
 
+#include <cstdlib>
 #include <memory>
 #include <string>
 #include <vector>

@@ -143,6 +143,11 @@ static void amf_apply_opt(amf_data *enc, obs_option *opt)
 		int val = atoi(opt->value);
 		set_opt(MAX_AU_SIZE, val);
 
+	} else if (avc && strcmp(opt->name, "preanalysis") == 0) {
+
+		bool val = str_to_bool(opt->value);
+		set_avc_property(enc, PREENCODE_ENABLE, val);
+
 	} else if (avc && strcmp(opt->name, "qp_b") == 0) {
 
 		int val = atoi(opt->value);
@@ -242,6 +247,17 @@ static void amf_apply_opt(amf_data *enc, obs_option *opt)
 		int val = atoi(opt->value);
 		set_hevc_property(enc, MAX_QP_P, val);
 	} else {
-		warn("Invalid option: %s", opt->name);
+		wchar_t wname[256];
+		int val;
+
+		if (astrcmpi(opt->value, "true") == 0)
+			val = 1;
+		else if (astrcmpi(opt->value, "false") == 0)
+			val = 0;
+		else
+			val = atoi(opt->value);
+
+		os_utf8_to_wcs(opt->name, 0, wname, _countof(wname));
+		set_amf_property(enc, wname, val);
 	}
 }
